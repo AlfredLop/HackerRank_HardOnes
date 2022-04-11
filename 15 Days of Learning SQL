@@ -1,0 +1,37 @@
+
+WITH DATES ([DATE]) AS( -- 1.a. Creating CTE mini calented table with recursiveness
+            SELECT DATEFROMPARTS(2016,3,1) AS [DATE]
+            UNION ALL
+            SELECT DATEADD(day,1,[DATE])
+            FROM DATES
+            WHERE DATE < DATEFROMPARTS(2016,3,15)
+            ),
+     SUBDATE_HACKER AS ( -- 2.a. Creating CTE to assing Ranks and identify who has submitted every day up to each date.
+            SELECT 
+                submission_date, 
+                HACKER_ID,
+                DENSE_RANK() OVER(PARTITION BY HACKER_ID ORDER BY submission_date) AS EXC
+            FROM Submissions 
+                        ),
+    UNIQUE_CONSEC_COUNT AS  ( 
+            SELECT 
+                [DATE],
+                (SELECT COUNT(DISTINCT HACKER_ID ) FROM SUBDATE_HACKER
+                  WHERE submission_date =  DT.[DATE]
+                AND EXC = (DATEDIFF(DAY,"2016-03-01",DT.[DATE] ) + 1) 
+                    ) CTDATE -- 2.b this subquery counts unique hackers that submitted consecutive, but filtering the 2nd CTE by date (i.e. Second date is March 2) and the by RANK (i.e. Only the ones that have a rank of 2 will have submitted both days)
+            FROM DATES DT )
+    SELECT 
+    [DATE],
+    CTDATE, 
+   (SELECT TOP 1 HACKER_ID
+       FROM Submissions
+     WHERE submission_date = D.[DATE]
+        GROUP BY HACKER_ID
+        ORDER BY COUNT(HACKER_ID) DESC, HACKER_ID ASC) JJ,
+ (SELECT TOP 1 NAME
+       FROM Submissions S LEFT JOIN Hackers H ON S.HACKER_ID = H.HACKER_ID 
+     WHERE submission_date = D.[DATE] 
+        GROUP BY S.HACKER_ID, NAME
+        ORDER BY COUNT(S.HACKER_ID) DESC, S.HACKER_ID ASC) KK
+FROM UNIQUE_CONSEC_COU
