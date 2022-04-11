@@ -1,4 +1,4 @@
-
+--Go to https://github.com/AlfredLop/HackerRank_HardOnes/commit/10ac2b774f353a383e9b6cb4cc8f26029cc11c01 to see though process as well.
 WITH DATES ([DATE]) AS( -- 1.a. Creating CTE mini calented table with recursiveness
             SELECT DATEFROMPARTS(2016,3,1) AS [DATE]
             UNION ALL
