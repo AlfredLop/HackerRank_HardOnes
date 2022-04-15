@@ -1,0 +1,23 @@
+
+Lookup Excersice : You are given a table, Projects, containing three columns: Task_ID, Start_Date and End_Date. It is guaranteed that the difference between the End_Date and the Start_Date is equal to 1 day for each row in the table.
+WITH TASK_CONSECUTIVE_01 AS ( --Bringing end_date from last row, to check if equal
+    SELECT *, 
+        CASE WHEN LAG (End_Date) OVER (ORDER BY End_Date ASC ) is NULL -- case statement to take care of the 1st record which is null
+            then Start_Date
+            Else LAG (End_Date) OVER (ORDER BY End_Date ASC )
+        END PrevDay
+     FROM Projects),
+    TASK_CONSECUTIVE_02 AS (  -- Adding column to determine if is consecutive or not
+    SELECT *, 
+        DATEDIFF(DAY, Prevday, Start_Date) Consecutiveness 
+    FROM TASK_CONSECUTIVE_01),
+    Project_grouping AS (    -- adding a running total to be able to group porjects
+    SELECT *,                
+            SUM(Consecutiveness) OVER(ORDER BY End_date) project 
+    FROM TASK_CONSECUTIVE_02  )
+SELECT 
+  MIN(Start_Date), 
+  MAX(End_Date) 
+FROM Project_grouping 
+GROUP BY project  
+ORDER BY DATEDIFF(DAY,MIN(Start_Date),MAX(End_Date)), Min(Start_date)
