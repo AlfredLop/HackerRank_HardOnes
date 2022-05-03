@@ -1,0 +1,21 @@
+Exercise: Harry Potter and his friends are at Ollivander's with Ron, finally replacing Charlie's old broken wand.Hermione decides the best way to choose is by determining the
+
+
+WITH OLIVANDERS_SOLUTION AS 
+                (SELECT 
+                    WP.AGE,
+                    W.POWER,
+                    W.ID, 
+                    W.CODE, 
+                    W.COINS_NEEDED,
+                    WP.IS_EVIL,
+                    ROW_NUMBER() OVER(PARTITION BY WP.AGE, W.POWER ORDER BY W.COINS_NEEDED ASC) AS RN
+                 FROM Wands W LEFT JOIN Wands_Property WP
+                 ON W.CODE = WP.CODE
+                 WHERE WP.IS_EVIL = 0
+                    )
+SELECT ID, AGE, COINS_NEEDED , POWER
+FROM OLIVANDERS_SOLUTION
+WHERE RN = 1
+ORDER BY POWER DESC, AGE DESC
+
